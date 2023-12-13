@@ -56,4 +56,31 @@ class ACicloVIda : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_aciclo_vida)
     }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.run {
+            // GUARDAR LAS VARIABLES
+            // PRIMITIVOS
+            putString("textoGuardado", textoGlobal)
+            //putInt("numeroGuardado", numero)
+        }
+        super.onSaveInstanceState(outState)
+
+    }
+
+    override fun onRestoreInstanceState(
+        savedInstanceState: Bundle
+    ) {
+        super.onRestoreInstanceState(savedInstanceState)
+        // RECUPERAR LAS VARIABLES
+        // PRIMITIVOS
+        val textoRecuperado: String? = savedInstanceState
+            .getString("textoGuardado")
+        // val texto Recuperado: Int? = savedInstanceState
+        //.getInt("numeroGuardado")
+        if (textoRecuperado != null) {
+            mostrarSnackbar(textoRecuperado)
+            textoGlobal = textoRecuperado
+        }
+    }
 }
