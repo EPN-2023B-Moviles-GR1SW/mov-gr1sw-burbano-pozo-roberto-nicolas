@@ -8,6 +8,7 @@ import android.provider.ContactsContract
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.example.b2023_gr1sw_vaes.EBaseDeDatos
 import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
@@ -15,6 +16,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Base de datos sqlite
+        EBaseDeDatos.tablaEntrenador = ESqliteHelperEntrenador(this)
 
         setContentView(R.layout.activity_main)
         val botonCicloVida = findViewById<Button>(R.id.btn_ciclo_vida)
@@ -42,10 +46,14 @@ class MainActivity : AppCompatActivity() {
         )
         botonIntentExplicito
             .setOnClickListener {
-                abrirActividadConParametros(
+                abrirActividadconParametros(
                     CIntentExplicitoParametros::class.java
                 )
             }
+        val botonSqlite = findViewById<Button>(R.id.btn_sqlite)
+        botonSqlite.setOnClickListener {
+            irActividad(ECrudEntrenador::class.java)
+        }
     }
 
     fun abrirActividadconParametros(clase: Class<*>) {
