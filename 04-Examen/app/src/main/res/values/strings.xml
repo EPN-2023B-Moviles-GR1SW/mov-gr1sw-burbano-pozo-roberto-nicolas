@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">examen</string>
+    <string name="main_object">Equipo</string>
+    <string name="child_object">Jugador</string>
+</resources>
