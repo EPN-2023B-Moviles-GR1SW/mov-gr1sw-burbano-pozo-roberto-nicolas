@@ -54,6 +54,10 @@ class MainActivity : AppCompatActivity() {
         botonSqlite.setOnClickListener {
             irActividad(ECrudEntrenador::class.java)
         }
+        val botonRecicler = findViewById<Button>(R.id.btn_revcycler_view)
+        botonRecicler.setOnClickListener {
+            irActividad(ECrudEntrenador::class.java)
+        }
     }
 
     fun abrirActividadconParametros(clase: Class<*>) {
@@ -63,7 +67,6 @@ class MainActivity : AppCompatActivity() {
         intentExplicito.putExtra("apellido", "Burbano")
         intentExplicito.putExtra("edad", 24)
         callbackContenidoIntentExplicito.launch(intentExplicito)
-            
     }
 
     fun irActividad(
