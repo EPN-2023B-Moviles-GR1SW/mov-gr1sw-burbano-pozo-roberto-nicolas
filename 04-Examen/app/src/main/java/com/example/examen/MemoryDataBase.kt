@@ -9,15 +9,20 @@ class MemoryDataBase {
     companion object {
         val teams: ArrayList<DTeam>
         val players: ArrayList<DPlayer>
+        var teamPlayers: ArrayList<DPlayer>
+
+        fun filterTeamPlayers(teamId: Int) {
+            teamPlayers = players.filter { it.team == teamId } as ArrayList<DPlayer>
+        }
 
         init {
             val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             teams = arrayListOf(
-                DTeam(0, "Barcelona F.C.", dateFormatter.parse("1960-01-02"), 893249.3F, true),
+                DTeam(0, "Barcelona F.C.", dateFormatter.parse("1960-01-02")!!, 893249.3F, true),
                 DTeam(1, "Manchester City", dateFormatter.parse("1965-05-05"), 654564.5F, true),
                 DTeam(2, "Espoli", dateFormatter.parse("1989-06-34"), 2149.3F, false),
                 DTeam(3, "Real Madrid", dateFormatter.parse("1960-01-02"), 893249.3F, true),
-                DTeam(4, "Barcelona F.C.", dateFormatter.parse("1960-01-02"), 893249.3F, true),
+                DTeam(4, "Gamma F.C.", dateFormatter.parse("1960-01-02"), 893249.3F, true),
             )
             players = arrayListOf(
                 DPlayer(
@@ -61,6 +66,7 @@ class MemoryDataBase {
                     team = 2
                 )
             )
+            teamPlayers = players
         }
     }
 }

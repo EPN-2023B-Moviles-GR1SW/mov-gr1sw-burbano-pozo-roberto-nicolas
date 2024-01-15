@@ -9,4 +9,8 @@ data class DPlayer(
     var name: String,
     var value: Float,
     var team: Int
-)
+){
+    override fun toString(): String {
+        return "$name $team $id";
+    }
+}

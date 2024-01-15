@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <item
+        android:id="@+id/edit_p"
+        android:title="Editar" />
+    <item
+        android:id="@+id/delete_p"
+        android:title="Eliminar" />
 </menu>

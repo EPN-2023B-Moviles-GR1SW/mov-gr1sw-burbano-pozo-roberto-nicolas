@@ -3,9 +3,13 @@ package com.example.examen
 import java.util.*
 
 data class DTeam(
-    val id: Int,
-    val name: String,
-    val foundationDate: Date,
-    val netIncome: Float,
-    val isActive: Boolean,
-)
+    var id: Int,
+    var name: String,
+    var foundationDate: Date,
+    var netIncome: Float,
+    var isActive: Boolean,
+){
+    override fun toString(): String {
+        return name;
+    }
+}

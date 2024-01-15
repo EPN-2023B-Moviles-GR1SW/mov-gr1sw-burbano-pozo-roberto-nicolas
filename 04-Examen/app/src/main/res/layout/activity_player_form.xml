@@ -8,96 +8,75 @@
 
     <EditText
         android:id="@+id/f_p_debut_date"
-        android:layout_width="261dp"
+        android:layout_width="280dp"
         android:layout_height="60dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="60dp"
         android:ems="10"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
         android:hint="Fecha de debut"
+        android:importantForAutofill="no"
         android:inputType="date"
-        app:layout_constraintEnd_toEndOf="@+id/f_p_id"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="@+id/f_p_id"
-        app:layout_constraintTop_toBottomOf="@+id/f_p_id" />
-
-    <EditText
-        android:id="@+id/f_p_id"
-        android:layout_width="275dp"
-        android:layout_height="53dp"
-        android:layout_marginTop="56dp"
-        android:ems="10"
-        android:hint="id"
-        android:inputType="number"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="@+id/f_p_name"
+        app:layout_constraintHorizontal_bias="0.444"
+        app:layout_constraintStart_toStartOf="@+id/f_p_name"
+        app:layout_constraintTop_toBottomOf="@+id/f_p_name" />
 
     <EditText
         android:id="@+id/f_p_value"
         android:layout_width="290dp"
         android:layout_height="53dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="60dp"
         android:ems="10"
         android:hint="Valor"
         android:inputType="numberDecimal"
-        app:layout_constraintEnd_toEndOf="@+id/f_p_name"
-        app:layout_constraintHorizontal_bias="0.367"
-        app:layout_constraintStart_toStartOf="@+id/f_p_name"
-        app:layout_constraintTop_toBottomOf="@+id/f_p_name" />
+        app:layout_constraintEnd_toEndOf="@+id/f_p_debut_date"
+        app:layout_constraintStart_toStartOf="@+id/f_p_debut_date"
+        app:layout_constraintTop_toBottomOf="@+id/f_p_debut_date"
+        android:importantForAutofill="no" />
 
     <CheckBox
         android:id="@+id/f_p_lesionado"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="60dp"
         android:text="¿Esta lesionado?"
-        app:layout_constraintEnd_toEndOf="@+id/f_p_debut_date"
-        app:layout_constraintHorizontal_bias="0.493"
-        app:layout_constraintStart_toStartOf="@+id/f_p_debut_date"
-        app:layout_constraintTop_toBottomOf="@+id/f_p_debut_date" />
+        app:layout_constraintEnd_toEndOf="@+id/f_p_value"
+        app:layout_constraintHorizontal_bias="0.47"
+        app:layout_constraintStart_toStartOf="@+id/f_p_value"
+        app:layout_constraintTop_toBottomOf="@+id/f_p_value" />
 
     <EditText
         android:id="@+id/f_p_name"
         android:layout_width="289dp"
         android:layout_height="52dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="100dp"
         android:ems="10"
         android:hint="Nombre"
         android:inputType="textPersonName"
-        android:text="Name"
-        app:layout_constraintEnd_toEndOf="@+id/f_p_lesionado"
-        app:layout_constraintHorizontal_bias="0.493"
-        app:layout_constraintStart_toStartOf="@+id/f_p_lesionado"
-        app:layout_constraintTop_toBottomOf="@+id/f_p_lesionado" />
-
-    <AutoCompleteTextView
-        android:id="@+id/f_p_team"
-        android:layout_width="266dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="24dp"
-        android:completionHint="Equipo"
-        app:layout_constraintEnd_toEndOf="@+id/f_p_value"
-        app:layout_constraintHorizontal_bias="0.333"
-        app:layout_constraintStart_toStartOf="@+id/f_p_value"
-        app:layout_constraintTop_toBottomOf="@+id/f_p_value" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.467"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:importantForAutofill="no" />
 
     <Button
         android:id="@+id/btn_save"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="104dp"
         android:layout_marginEnd="84dp"
         android:text="Guardar"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_cancel"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/f_p_team"
-        app:layout_constraintVertical_bias="0.024" />
+        app:layout_constraintTop_toTopOf="@+id/btn_cancel"
+        app:layout_constraintVertical_bias="0.185" />
 
     <Button
         android:id="@+id/btn_cancel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="76dp"
+        android:layout_marginBottom="100dp"
         android:text="Cancelar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btn_save"

@@ -1,7 +1,8 @@
 package com.example.examen
 
+import android.app.Activity
 import android.app.AlertDialog
-import android.content.DialogInterface
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.ContextMenu
@@ -11,13 +12,13 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
+import androidx.activity.result.contract.ActivityResultContracts
 import com.google.android.material.snackbar.Snackbar
-import java.text.SimpleDateFormat
-import java.util.*
 
 class MainActivity : AppCompatActivity() {
-    val list = MemoryDataBase.teams
-    var selectedItem = -1
+    private lateinit var adaptador: ArrayAdapter<DTeam>
+    private val teams = MemoryDataBase.teams
+    private var selectedItem = -1
     override fun onCreateContextMenu(
         menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?
     ) {
@@ -25,53 +26,67 @@ class MainActivity : AppCompatActivity() {
         val inflater = menuInflater
         inflater.inflate(R.menu.main_object_menu, menu)
         val info = menuInfo as AdapterView.AdapterContextMenuInfo
-        val posicion = info.position
-        selectedItem = posicion
+        val position = info.position
+        selectedItem = position
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.edit_t -> {
-                mostrarSnackbar("${selectedItem}")
-                //TODO ADD NAVIGATION
+                openForm(teams[selectedItem].id)
                 return true
             }
 
             R.id.delete_t -> {
-                mostrarSnackbar("${selectedItem}")
-                abrirDialogo()
+                deleteDialog(selectedItem)
                 return true
             }
 
             R.id.view_t -> {
-                mostrarSnackbar("${selectedItem}")
-                //TODO ADD NAVIGATION
+                val explicitIntent= Intent(this,PlayerList::class.java)
+                val team= teams[selectedItem]
+                explicitIntent.putExtra("team",team.id)
+                explicitIntent.putExtra("team_name",team.name)
+                startActivity(explicitIntent)
                 return true
             }
-
             else -> super.onContextItemSelected(item)
         }
     }
-
-    fun abrirDialogo() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Desea eliminar")
-        builder.setPositiveButton("Aceptar", DialogInterface.OnClickListener { dialog, which ->
-            mostrarSnackbar("Eliminar aceptado")
-        })
-        builder.setNegativeButton(
-            "Cancelar", null
-        )
-        val dialogo = builder.create()
-        dialogo.show()
+    private val callBackIntent = registerForActivityResult(
+    ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            if (result.data != null) {
+                val data = result.data
+                showSnackBar("${data?.getStringExtra("action")}")
+            }
+            adaptador.notifyDataSetChanged()
+        }
     }
 
 
-    fun mostrarSnackbar(texto: String) {
+    private fun deleteDialog(item: Int) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Desea eliminar")
+        builder.setPositiveButton("Aceptar") { _, _ ->
+            teams.removeAt(item)
+            adaptador.notifyDataSetChanged()
+            showSnackBar("Eliminar aceptado")
+        }
+        builder.setNegativeButton(
+            "Cancelar", null
+        )
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+
+    private fun showSnackBar(text: String) {
         Snackbar.make(
-            findViewById(R.id.lv_team), // view
-            texto, // texto
-            Snackbar.LENGTH_LONG // tiempo
+            findViewById(R.id.lv_player),
+            text,
+            Snackbar.LENGTH_LONG
         ).show()
     }
 
@@ -79,32 +94,29 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val listView = findViewById<ListView>(R.id.lv_team)
-        val adaptador = ArrayAdapter(
+        val listView = findViewById<ListView>(R.id.lv_player)
+        this.adaptador = ArrayAdapter(
             this,
             android.R.layout.simple_list_item_1,
-            list
+            teams
         )
         listView.adapter = adaptador
         adaptador.notifyDataSetChanged()
 
-        val botonAnadirListView = findViewById<Button>(
-            R.id.create_t
+        val buttonAddListView = findViewById<Button>(
+            R.id.create_p
         )
-        botonAnadirListView
+        buttonAddListView
             .setOnClickListener {
-                anadirEntrenador(adaptador)
+                val newTeamId=(teams.maxBy { it.id }).id+1
+                openForm(newTeamId)
             }
         registerForContextMenu(listView)
     }
 
-    fun anadirEntrenador(
-        adaptador: ArrayAdapter<DTeam>
-    ) {
-        val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        list.add(
-            DTeam(5, "Olmedo", dateFormatter.parse("1960-01-02"), 249.3F, true),
-            )
-        adaptador.notifyDataSetChanged()
+    private fun openForm(teamId:Int ) {
+        val explicitIntent= Intent(this,TeamForm::class.java)
+        explicitIntent.putExtra("team_id",teamId)
+        callBackIntent.launch(explicitIntent)
     }
 }
