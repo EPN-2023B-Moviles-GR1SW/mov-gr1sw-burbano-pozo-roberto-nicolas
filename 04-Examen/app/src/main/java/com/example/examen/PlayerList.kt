@@ -32,17 +32,11 @@ class PlayerList : AppCompatActivity() {
                 val data = result.data
                 showSnackBar("${data?.getStringExtra("action")}")
                 val newPlayerId = data?.getIntExtra("newPlayerId", -1)
-                println(newPlayerId)
                 if (newPlayerId != -1) {
                     filterPlayers.add(players.filter{it.id==newPlayerId}[0])
                 }
             }
-            println("la puta madre no funcions")
-
-            println(filterPlayers)
             adaptador.notifyDataSetChanged()
-            println(filterPlayers)
-
         }
     }
 
