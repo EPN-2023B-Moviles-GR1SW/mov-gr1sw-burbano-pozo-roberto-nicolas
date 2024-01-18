@@ -11,7 +11,7 @@
         android:id="@+id/child_title"
         android:layout_width="228dp"
         android:layout_height="51dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="28dp"
         android:autoText="false"
         android:singleLine="true"
         android:text="@string/main_object"
@@ -20,15 +20,15 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Display1"
         android:textColor="#000000"
         android:textSize="34sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.131"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/lv_player"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/lv_player"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ListView
         android:id="@+id/lv_player"
-        android:layout_width="364dp"
-        android:layout_height="590dp"
+        android:layout_width="355dp"
+        android:layout_height="566dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -38,14 +38,11 @@
         android:id="@+id/create_p"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="268dp"
-        android:layout_marginTop="32dp"
         android:text="Crear"
         app:layout_constraintBottom_toBottomOf="@+id/child_title"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/child_title"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/child_title"
+        app:layout_constraintTop_toTopOf="@+id/child_title"
         app:layout_constraintVertical_bias="0.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

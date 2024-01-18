@@ -27,8 +27,6 @@ class PlayerForm : AppCompatActivity() {
 
         playerId = intent.getIntExtra("player_id", -1)
         teamId = intent.getIntExtra("team_id", -1)
-        println(playerId)
-        println(teamId)
         val player = players.find { it.id == playerId }
 
         selectedDateTextView = findViewById(R.id.f_p_debut_date)

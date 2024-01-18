@@ -11,6 +11,6 @@ data class DPlayer(
     var team: Int
 ){
     override fun toString(): String {
-        return "$name $team $id";
+        return "$name";
     }
 }
