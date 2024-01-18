@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
         EBaseDeDatos.tablaEntrenador = ESqliteHelperEntrenador(this)
 
         setContentView(R.layout.activity_main)
-        val botonCicloVida = findViewById<Button>(R.id.btn_ciclo_vida)
+        val botonCicloVida = findViewById<Button>(R.id.btn_google_maps)
         botonCicloVida.setOnClickListener {
             irActividad(ACicloVIda::class.java);
         }
@@ -57,6 +57,10 @@ class MainActivity : AppCompatActivity() {
         val botonRecicler = findViewById<Button>(R.id.btn_revcycler_view)
         botonRecicler.setOnClickListener {
             irActividad(ECrudEntrenador::class.java)
+        }
+        val botonGoogle = findViewById<Button>(R.id.btn_google_maps)
+        botonRecicler.setOnClickListener {
+            irActividad(GoogleMapsActivity::class.java)
         }
     }
 

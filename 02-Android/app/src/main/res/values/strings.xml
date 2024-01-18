@@ -1,11 +1,10 @@
 <resources>
     <string name="app_name">B2023-gr1sw-rnbp</string>
     <string name="saludo">Buenos Días</string>
-    <color name="bg">#000</color>
-    <color name="text">#fff</color>
     <string-array name="string_array_opciones_dialogo">
         <item>Lunes</item>
         <item>Martes</item>
         <item>Miercoles</item>
     </string-array>
+    <string name="title_activity_google_maps_inicio">GoogleMapsInicio</string>
 </resources>
