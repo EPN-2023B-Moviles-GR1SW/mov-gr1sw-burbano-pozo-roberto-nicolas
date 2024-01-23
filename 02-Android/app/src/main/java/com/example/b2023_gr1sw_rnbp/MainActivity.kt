@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
         EBaseDeDatos.tablaEntrenador = ESqliteHelperEntrenador(this)
 
         setContentView(R.layout.activity_main)
-        val botonCicloVida = findViewById<Button>(R.id.btn_google_maps)
+        val botonCicloVida = findViewById<Button>(R.id.btn_ciclo_vida)
         botonCicloVida.setOnClickListener {
             irActividad(ACicloVIda::class.java);
         }
@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
             irActividad(ECrudEntrenador::class.java)
         }
         val botonGoogle = findViewById<Button>(R.id.btn_google_maps)
-        botonRecicler.setOnClickListener {
+        botonGoogle.setOnClickListener {
             irActividad(GoogleMapsActivity::class.java)
         }
     }
@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun mostrarSnackbar(texto: String) {
-        Snackbar.make(findViewById(R.id.id_layout_main), texto, Snackbar.LENGTH_LONG).show()
+        Snackbar.make(findViewById(R.id.ly_main), texto, Snackbar.LENGTH_LONG).show()
     }
 
     val callbackIntentPickUri = registerForActivityResult(

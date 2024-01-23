@@ -8,14 +8,11 @@ import android.database.sqlite.SQLiteOpenHelper
 class ESqliteHelperEntrenador(
     contexto: Context?, // THIS
 ) : SQLiteOpenHelper(
-    contexto,
-    "moviles", // nombre BDD
-    null,
-    1
+    contexto, "moviles", // nombre BDD
+    null, 1
 ) {
     override fun onCreate(db: SQLiteDatabase?) {
-        val scriptSQLCrearTablaEntrenador =
-            """
+        val scriptSQLCrearTablaEntrenador = """
             CREATE TABLE ENTRENADOR(
                 id INTEGER PRIMARY KEY AUTOINCREMENT, nombre VARCHAR(50),
                 descripcion VARCHAR(50)
@@ -29,18 +26,14 @@ class ESqliteHelperEntrenador(
     }
 
     fun crearEntrenador(
-        nombre: String,
-        descripcion: String
+        nombre: String, descripcion: String
     ): Boolean {
         val basedatosEscritura = writableDatabase
-        I
         val valoresAGuardar = ContentValues()
         valoresAGuardar.put("nombre", nombre)
         valoresAGuardar.put("descripcion", descripcion)
-        val resultadoGuardar = basedatosEscritura
-            .insert(
-                null,
-                "ENTRENADOR", // Nombre tabla
+        val resultadoGuardar = basedatosEscritura.insert(
+                null, "ENTRENADOR", // Nombre tabla
                 valoresAGuardar // valores
             )
         basedatosEscritura.close()
@@ -73,8 +66,7 @@ class ESqliteHelperEntrenador(
         valoresAActualizar.put("descripcion", descripcion)
         // where ID = ?
         val parametrosConsultaActualizar = arrayOf(id.toString())
-        val resultadoActualizacion = conexionEscritura
-            .update(
+        val resultadoActualizacion = conexionEscritura.update(
                 "ENTRENADOR", // Nombre tabla
                 valoresAActualizar, // Valores
                 "id=?", // Consulta Where
