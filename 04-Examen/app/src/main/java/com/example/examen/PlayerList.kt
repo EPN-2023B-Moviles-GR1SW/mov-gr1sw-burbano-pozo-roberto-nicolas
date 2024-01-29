@@ -6,6 +6,7 @@ import android.content.DialogInterface
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.ContextMenu
 import android.view.MenuItem
 import android.view.View
@@ -19,8 +20,7 @@ import com.google.android.material.snackbar.Snackbar
 
 class PlayerList : AppCompatActivity() {
     private lateinit var adaptador: ArrayAdapter<DPlayer>
-    private val players = MemoryDataBase.players
-    private lateinit var filterPlayers: ArrayList<DPlayer>
+    private lateinit var players : ArrayList<DPlayer>
     private var selectedItem = -1
     private var currentId: Int = -1
 
@@ -28,15 +28,11 @@ class PlayerList : AppCompatActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
+            updaAdapter()
             if (result.data != null) {
                 val data = result.data
                 showSnackBar("${data?.getStringExtra("action")}")
-                val newPlayerId = data?.getIntExtra("newPlayerId", -1)
-                if (newPlayerId != -1) {
-                    filterPlayers.add(players.filter{it.id==newPlayerId}[0])
-                }
             }
-            adaptador.notifyDataSetChanged()
         }
     }
 
@@ -54,12 +50,12 @@ class PlayerList : AppCompatActivity() {
     override fun onContextItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.edit_p -> {
-                openForm(filterPlayers[selectedItem].id)
+                openForm(players[selectedItem].id)
                 return true
             }
 
             R.id.delete_p -> {
-                deleteDialog(selectedItem)
+                deleteDialog(players[selectedItem].id)
                 return true
             }
 
@@ -71,10 +67,8 @@ class PlayerList : AppCompatActivity() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Desea eliminar")
         builder.setPositiveButton("Aceptar", DialogInterface.OnClickListener { dialog, which ->
-            val playerId = filterPlayers[item].id
-            players.removeIf { it.id == playerId }
-            filterPlayers.removeAt(item)
-            adaptador.notifyDataSetChanged()
+            SqlDataBase.tables?.delete(item,"players")
+            updaAdapter()
             showSnackBar("Eliminar aceptado")
         })
         builder.setNegativeButton(
@@ -96,10 +90,10 @@ class PlayerList : AppCompatActivity() {
         val listView = findViewById<ListView>(R.id.lv_player)
         val teamId = intent.getIntExtra("team", -1)
         currentId = teamId
-        filterPlayers=players.filter { it.team  == currentId } as ArrayList<DPlayer>
+        players= SqlDataBase.tables?.retrieveByTeam(currentId)!!
 
         this.adaptador = ArrayAdapter(
-            this, android.R.layout.simple_list_item_1, filterPlayers
+            this, android.R.layout.simple_list_item_1, players
         )
         listView.adapter = adaptador
         adaptador.notifyDataSetChanged()
@@ -109,7 +103,7 @@ class PlayerList : AppCompatActivity() {
             R.id.create_p
         )
         botonAnadirListView.setOnClickListener {
-            val newId = (players.maxBy { it.id }).id + 1
+            val newId = SqlDataBase.tables!!.getMaxId("players") + 1
             openForm(newId)
         }
 
@@ -132,5 +126,14 @@ class PlayerList : AppCompatActivity() {
         Snackbar.make(
             findViewById(R.id.lv_player), text, Snackbar.LENGTH_LONG
         ).show()
+    }
+
+    private fun updaAdapter(){
+        players = SqlDataBase.tables?.retrieveByTeam(currentId)!!
+        Log.d("UPDATING ADAPTER PLAYER", players.toString())
+        adaptador.clear()
+        players.forEach {
+            adaptador.insert(it, adaptador.count)
+        }
     }
 }
