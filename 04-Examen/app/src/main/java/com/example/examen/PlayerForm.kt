@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.DatePicker
@@ -14,7 +15,6 @@ import java.util.Calendar
 import java.util.Locale
 
 class PlayerForm : AppCompatActivity() {
-    private val players = MemoryDataBase.players
     private var playerId = -1
     private var teamId = -1
     val calendar = Calendar.getInstance()
@@ -22,13 +22,10 @@ class PlayerForm : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player_form)
-
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-
         playerId = intent.getIntExtra("player_id", -1)
         teamId = intent.getIntExtra("team_id", -1)
-        val player = players.find { it.id == playerId }
-
+        val player = SqlDataBase.tables?.retrievePlayer(playerId)
         selectedDateTextView = findViewById(R.id.f_p_debut_date)
         selectedDateTextView.setOnClickListener {
             showDatePickerDialog()
@@ -51,31 +48,32 @@ class PlayerForm : AppCompatActivity() {
         val saveButton = findViewById<Button>(R.id.btn_save)
         saveButton.setOnClickListener {
             if (player != null) {
-                player.name = this.findViewById<TextView>(R.id.f_p_name).text.toString()
-                player.value =
-                    this.findViewById<TextView>(R.id.f_p_value).text.toString().toFloat()
-                player.isInjured = this.findViewById<CheckBox>(R.id.f_p_lesionado).isChecked
-                player.debutDate =
-                    dateFormat.parse(this.findViewById<TextView>(R.id.f_p_debut_date).text.toString())!!
+                val selectedDate = dateFormat.format(player.debutDate)
+                SqlDataBase.tables?.updatePlayer(
+                    selectedDate,
+                    this.findViewById<CheckBox>(R.id.f_p_lesionado).isChecked,
+                    this.findViewById<TextView>(R.id.f_p_name).text.toString(),
+                    this.findViewById<TextView>(R.id.f_p_value).text.toString().toFloat(),
+                    teamId,
+                    playerId,
+                )
                 exit("Jugardor Actualizado")
             } else {
-                players.add(
-                    DPlayer(
-                        playerId,
-                        dateFormat.parse(this.findViewById<TextView>(R.id.f_p_debut_date).text.toString())!!,
-                        this.findViewById<CheckBox>(R.id.f_p_lesionado).isChecked,
-                        this.findViewById<TextView>(R.id.f_p_name).text.toString(),
-                        this.findViewById<TextView>(R.id.f_p_value).text.toString().toFloat(),
-                        teamId
-                    )
+                Log.d("CREATING PLAYER", "Start")
+                SqlDataBase.tables?.createPlayer(
+                    this.findViewById<TextView>(R.id.f_p_debut_date).text.toString(),
+                    this.findViewById<CheckBox>(R.id.f_p_lesionado).isChecked,
+                    this.findViewById<TextView>(R.id.f_p_name).text.toString(),
+                    this.findViewById<TextView>(R.id.f_p_value).text.toString().toFloat(),
+                    teamId,
                 )
-                println(players)
-                exit("Jugador Creado",playerId)
+                println(SqlDataBase.tables?.retrieveByTeam(teamId))
+                exit("Jugador Creado", playerId)
             }
         }
     }
 
-    private fun exit(message: String,newPlayer: Int) {
+    private fun exit(message: String, newPlayer: Int) {
         val returnIntent = Intent()
         returnIntent.putExtra("action", message)
         returnIntent.putExtra("newPlayerId", newPlayer)
@@ -86,6 +84,7 @@ class PlayerForm : AppCompatActivity() {
         )
         finish()
     }
+
     private fun exit(message: String) {
         val returnIntent = Intent()
         returnIntent.putExtra("action", message)

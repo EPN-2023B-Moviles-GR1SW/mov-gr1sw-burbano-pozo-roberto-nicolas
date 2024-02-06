@@ -14,7 +14,7 @@ import java.util.Calendar
 import java.util.Locale
 
 class TeamForm : AppCompatActivity() {
-    private val teams = MemoryDataBase.teams
+    //private val teams = MemoryDataBase.teams
     private var teamId = -1
     val calendar = Calendar.getInstance()
     private lateinit var selectedDateTextView: TextView
@@ -25,7 +25,8 @@ class TeamForm : AppCompatActivity() {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
         teamId = intent.getIntExtra("team_id", -1)
-        val team = teams.find { it.id == teamId }
+        //val team = teams.find { it.id == teamId }
+        val team = SqlDataBase.tables?.retrieveTeam(teamId)
         "ID: $teamId".also { findViewById<TextView>(R.id.id_label_t).text = it }
 
         selectedDateTextView = findViewById(R.id.foundation_t)
@@ -50,21 +51,20 @@ class TeamForm : AppCompatActivity() {
         val saveButton = findViewById<Button>(R.id.btn_save_t)
         saveButton.setOnClickListener {
             if (team != null) {
-                team.name = this.findViewById<TextView>(R.id.name_t).text.toString()
-                team.netIncome =
-                    this.findViewById<TextView>(R.id.income_t).text.toString().toFloat()
-                team.isActive = this.findViewById<CheckBox>(R.id.active_t).isChecked
-                team.foundationDate =
-                    dateFormat.parse(this.findViewById<TextView>(R.id.foundation_t).text.toString())!!
+                SqlDataBase.tables?.updateTeam(
+                    this.findViewById<TextView>(R.id.name_t).text.toString(),
+                    this.findViewById<TextView>(R.id.foundation_t).text.toString(),
+                    this.findViewById<TextView>(R.id.income_t).text.toString().toFloat(),
+                    this.findViewById<CheckBox>(R.id.active_t).isChecked,
+                    team.id
+                )
                 exit("Equipo Actualizado")
             } else {
-                teams.add(
-                    DTeam(
-                        teamId, this.findViewById<TextView>(R.id.name_t).text.toString(),
-                        dateFormat.parse(this.findViewById<TextView>(R.id.foundation_t).text.toString())!!,
+                SqlDataBase.tables?.createTeam(
+                        this.findViewById<TextView>(R.id.name_t).text.toString(),
+                        this.findViewById<TextView>(R.id.foundation_t).text.toString(),
                         this.findViewById<TextView>(R.id.income_t).text.toString().toFloat(),
                         this.findViewById<CheckBox>(R.id.active_t).isChecked,
-                    )
                 )
                 exit("Equipo Creado")
 

@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.ContextMenu
 import android.view.MenuItem
 import android.view.View
@@ -17,7 +18,7 @@ import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
     private lateinit var adaptador: ArrayAdapter<DTeam>
-    private val teams = MemoryDataBase.teams
+    private lateinit var teams: ArrayList<DTeam>
     private var selectedItem = -1
     override fun onCreateContextMenu(
         menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?
@@ -25,6 +26,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreateContextMenu(menu, v, menuInfo)
         val inflater = menuInflater
         inflater.inflate(R.menu.main_object_menu, menu)
+
         val info = menuInfo as AdapterView.AdapterContextMenuInfo
         val position = info.position
         selectedItem = position
@@ -38,40 +40,50 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.delete_t -> {
-                deleteDialog(selectedItem)
+                deleteDialog(teams[selectedItem].id)
                 return true
             }
 
             R.id.view_t -> {
-                val explicitIntent= Intent(this,PlayerList::class.java)
-                val team= teams[selectedItem]
-                explicitIntent.putExtra("team",team.id)
-                explicitIntent.putExtra("team_name",team.name)
+                val explicitIntent = Intent(this, PlayerList::class.java)
+                val team = teams[selectedItem]
+                explicitIntent.putExtra("team", team.id)
+                explicitIntent.putExtra("team_name", team.name)
                 startActivity(explicitIntent)
                 return true
             }
             else -> super.onContextItemSelected(item)
         }
     }
+
     private val callBackIntent = registerForActivityResult(
-    ActivityResultContracts.StartActivityForResult()
+        ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             if (result.data != null) {
                 val data = result.data
                 showSnackBar("${data?.getStringExtra("action")}")
             }
+            updaAdapter()
             adaptador.notifyDataSetChanged()
+
         }
     }
 
+    private fun updaAdapter() {
+        teams = SqlDataBase.tables!!.retrieveAllTeams()
+        adaptador.clear()
+        teams.forEach {
+            adaptador.insert(it, adaptador.count)
+        }
+    }
 
     private fun deleteDialog(item: Int) {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Desea eliminar")
         builder.setPositiveButton("Aceptar") { _, _ ->
-            teams.removeAt(item)
-            adaptador.notifyDataSetChanged()
+            SqlDataBase.tables?.delete(item, "teams")
+            updaAdapter()
             showSnackBar("Eliminar aceptado")
         }
         builder.setNegativeButton(
@@ -84,21 +96,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun showSnackBar(text: String) {
         Snackbar.make(
-            findViewById(R.id.lv_player),
-            text,
-            Snackbar.LENGTH_LONG
+            findViewById(R.id.lv_player), text, Snackbar.LENGTH_LONG
         ).show()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        Log.d("MAIN", "Starting DB")
+        SqlDataBase.tables = SQLHelperE(this)
+        Log.d("MAIN", "Created DB")
 
+
+        teams = SqlDataBase.tables!!.retrieveAllTeams()
         val listView = findViewById<ListView>(R.id.lv_player)
         this.adaptador = ArrayAdapter(
-            this,
-            android.R.layout.simple_list_item_1,
-            teams
+            this, android.R.layout.simple_list_item_1, teams
         )
         listView.adapter = adaptador
         adaptador.notifyDataSetChanged()
@@ -106,17 +119,16 @@ class MainActivity : AppCompatActivity() {
         val buttonAddListView = findViewById<Button>(
             R.id.create_p
         )
-        buttonAddListView
-            .setOnClickListener {
-                val newTeamId=(teams.maxBy { it.id }).id+1
-                openForm(newTeamId)
-            }
+        buttonAddListView.setOnClickListener {
+            val newTeamId = SqlDataBase.tables!!.getMaxId("teams") + 1
+            openForm(newTeamId)
+        }
         registerForContextMenu(listView)
     }
 
-    private fun openForm(teamId:Int ) {
-        val explicitIntent= Intent(this,TeamForm::class.java)
-        explicitIntent.putExtra("team_id",teamId)
+    private fun openForm(teamId: Int) {
+        val explicitIntent = Intent(this, TeamForm::class.java)
+        explicitIntent.putExtra("team_id", teamId)
         callBackIntent.launch(explicitIntent)
     }
 }
