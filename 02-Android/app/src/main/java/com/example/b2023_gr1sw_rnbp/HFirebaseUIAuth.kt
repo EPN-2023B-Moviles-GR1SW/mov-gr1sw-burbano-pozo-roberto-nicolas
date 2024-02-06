@@ -49,4 +49,6 @@ class HFirebaseUIAuth : AppCompatActivity() {
         usuario.phoneNumber;
         usuario.user.name;*/
     }
+
+
 }
