@@ -4,43 +4,33 @@ import android.app.DatePickerDialog
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.DatePicker
 import android.widget.EditText
 import android.widget.TextView
+import com.google.android.gms.tasks.Task
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.ktx.firestore
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
+import java.util.*
+import kotlin.collections.ArrayList
 
 class TeamForm : AppCompatActivity() {
-    //private val teams = MemoryDataBase.teams
-    private var teamId = -1
-    val calendar = Calendar.getInstance()
-    private lateinit var selectedDateTextView: TextView
+    private var teamId: String = ""
+    private var team = DTeam("", "", "", 0, true)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_team_form)
 
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        teamId = intent.getStringExtra("team_id")!!
 
-        teamId = intent.getIntExtra("team_id", -1)
-        //val team = teams.find { it.id == teamId }
-        val team = SqlDataBase.tables?.retrieveTeam(teamId)
-        "ID: $teamId".also { findViewById<TextView>(R.id.id_label_t).text = it }
+        consultar(teamId)
 
-        selectedDateTextView = findViewById(R.id.foundation_t)
-        selectedDateTextView.setOnClickListener {
-            showDatePickerDialog()
-        }
-
-        if (team != null) {
-            val selectedDate = dateFormat.format(team.foundationDate)
-            selectedDateTextView.text = selectedDate
-            findViewById<EditText>(R.id.name_t).setText(team.name)
-            findViewById<EditText>(R.id.income_t).setText(team.netIncome.toString())
-            findViewById<CheckBox>(R.id.active_t).isChecked = team.isActive
-        }
 
         val backButton = findViewById<Button>(R.id.btn_cancel_t)
         backButton.setOnClickListener {
@@ -50,24 +40,11 @@ class TeamForm : AppCompatActivity() {
 
         val saveButton = findViewById<Button>(R.id.btn_save_t)
         saveButton.setOnClickListener {
-            if (team != null) {
-                SqlDataBase.tables?.updateTeam(
-                    this.findViewById<TextView>(R.id.name_t).text.toString(),
-                    this.findViewById<TextView>(R.id.foundation_t).text.toString(),
-                    this.findViewById<TextView>(R.id.income_t).text.toString().toFloat(),
-                    this.findViewById<CheckBox>(R.id.active_t).isChecked,
-                    team.id
-                )
+            crear()
+            if (team.id != "2") {
                 exit("Equipo Actualizado")
             } else {
-                SqlDataBase.tables?.createTeam(
-                        this.findViewById<TextView>(R.id.name_t).text.toString(),
-                        this.findViewById<TextView>(R.id.foundation_t).text.toString(),
-                        this.findViewById<TextView>(R.id.income_t).text.toString().toFloat(),
-                        this.findViewById<CheckBox>(R.id.active_t).isChecked,
-                )
                 exit("Equipo Creado")
-
             }
         }
     }
@@ -81,26 +58,54 @@ class TeamForm : AppCompatActivity() {
         finish()
     }
 
-    private fun showDatePickerDialog() {
-        val datePickerDialog = DatePickerDialog(
-            this,
-            { _: DatePicker?, year: Int, monthOfYear: Int, dayOfMonth: Int ->
-                calendar.set(Calendar.YEAR, year)
-                calendar.set(Calendar.MONTH, monthOfYear)
-                calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-                updateSelectedDate()
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        )
-        datePickerDialog.show()
+
+    fun consultar(id: String): Task<DocumentSnapshot> {
+        val db = Firebase.firestore
+        val citiesRefUnico = db.collection("teams")
+        return citiesRefUnico.document(id).get().addOnSuccessListener { it ->
+            if (it.data != null) {
+                Log.e("TEAM", it.toString())
+                team = DTeam(
+                    it.id,
+                    it.data?.get("name") as String,
+                    it.data!!["foundationDate"] as String,
+                    it.data!!["netIncome"] as Long,
+                    it.data!!["isActive"] as Boolean
+                )
+                var id = it.id
+                "ID: $id".also { findViewById<TextView>(R.id.id_label_t).text = id }
+                findViewById<EditText>(R.id.name_t).setText(team.name)
+                findViewById<EditText>(R.id.foundation_t).setText(team.foundationDate)
+                findViewById<EditText>(R.id.income_t).setText(team.netIncome.toString())
+                findViewById<CheckBox>(R.id.active_t).isChecked = team.isActive
+            }
+
+        }.addOnFailureListener {
+
+        }
     }
 
-    private fun updateSelectedDate() {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val selectedDate = dateFormat.format(calendar.time)
-        selectedDateTextView.text = selectedDate
+    fun crear() {
+        val db = com.google.firebase.ktx.Firebase.firestore
+        val coll = db.collection("teams")
+        val teamData = hashMapOf(
+            "name" to this.findViewById<TextView>(R.id.name_t).text.toString(),
+            "foundationDate" to this.findViewById<TextView>(R.id.foundation_t).text.toString(),
+            "netIncome" to this.findViewById<TextView>(R.id.income_t).text.toString().toLong(),
+            "isActive" to this.findViewById<CheckBox>(R.id.active_t).isChecked,
+        )
+        if (team.id != "") {
+            coll
+                .document(team.id)
+                .set(teamData)
+                .addOnSuccessListener { }
+                .addOnFailureListener { }
+        } else {
+            coll
+                .add(teamData)
+                .addOnCompleteListener { }
+                .addOnFailureListener { }
+        }
     }
 }
 

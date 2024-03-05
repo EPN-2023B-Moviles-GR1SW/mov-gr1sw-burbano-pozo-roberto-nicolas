@@ -10,19 +10,21 @@ import android.util.Log
 import android.view.ContextMenu
 import android.view.MenuItem
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.ListView
-import android.widget.TextView
+import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.firestore.*
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 class PlayerList : AppCompatActivity() {
     private lateinit var adaptador: ArrayAdapter<DPlayer>
-    private lateinit var players : ArrayList<DPlayer>
     private var selectedItem = -1
-    private var currentId: Int = -1
+    private var currentId: String = ""
+    var query: Query? = null
+    val players: ArrayList<DPlayer> = arrayListOf()
+
 
     private val callBackIntent = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -63,12 +65,17 @@ class PlayerList : AppCompatActivity() {
         }
     }
 
-    private fun deleteDialog(item: Int) {
+    private fun deleteDialog(item: String) {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Desea eliminar")
         builder.setPositiveButton("Aceptar", DialogInterface.OnClickListener { dialog, which ->
-            SqlDataBase.tables?.delete(item,"players")
-            updaAdapter()
+            val db = Firebase.firestore
+            val referenciaEjemploEstudiante = db.collection("players")
+            referenciaEjemploEstudiante
+                .document(item)
+                .delete()
+                .addOnCompleteListener {updaAdapter()}
+                .addOnFailureListener {}
             showSnackBar("Eliminar aceptado")
         })
         builder.setNegativeButton(
@@ -88,23 +95,24 @@ class PlayerList : AppCompatActivity() {
         title.text = team
 
         val listView = findViewById<ListView>(R.id.lv_player)
-        val teamId = intent.getIntExtra("team", -1)
-        currentId = teamId
-        players= SqlDataBase.tables?.retrieveByTeam(currentId)!!
+        if (team != null) {
+            currentId = team as String
+        }
 
         this.adaptador = ArrayAdapter(
             this, android.R.layout.simple_list_item_1, players
         )
         listView.adapter = adaptador
-        adaptador.notifyDataSetChanged()
+
+        retrieveAll(adaptador, currentId)
+
         registerForContextMenu(listView)
 
         val botonAnadirListView = findViewById<Button>(
             R.id.create_p
         )
         botonAnadirListView.setOnClickListener {
-            val newId = SqlDataBase.tables!!.getMaxId("players") + 1
-            openForm(newId)
+            openForm(null)
         }
 
         val backButton = findViewById<Button>(R.id.btn_back)
@@ -113,9 +121,48 @@ class PlayerList : AppCompatActivity() {
         }
     }
 
+    private fun retrieveAll(adapter: ArrayAdapter<DPlayer>, team: String) {
+        val db = Firebase.firestore
+        val citiesRef = db.collection("players")
+        citiesRef.whereEqualTo("team", team).get()
+            .addOnSuccessListener { documentSnapshots ->
+                guardarQuery(documentSnapshots, citiesRef)
+                for (player in documentSnapshots) {
+                    Log.e("Firebase function", player.toString())
+                    addArray(player)
+                }
+                adapter.notifyDataSetChanged()
+            }
+            .addOnFailureListener {/* si hay fallos*/ }
+    }
 
+    fun addArray(
+        document: QueryDocumentSnapshot
+    ) {
+        val newTeam = DPlayer(
+            document.id,
+            document.data["debutDate"] as String,
+            document.data["isInjured"] as Boolean,
+            document.data["name"] as String,
+            document.data["value"] as Long,
+            document.data["team"] as String,
+        )
+        players.add(newTeam)
+    }
 
-    private fun openForm(playerId: Int) {
+    fun guardarQuery(
+        documentSnapshots: QuerySnapshot,
+        refCities: Query
+    ) {
+        if (documentSnapshots.size() > 0) {
+            val ultimoDocumento = documentSnapshots
+                .documents[documentSnapshots.size() - 1]
+            query = refCities
+                .startAfter(ultimoDocumento)
+        }
+    }
+
+    private fun openForm(playerId: String?) {
         val explicitIntent = Intent(this, PlayerForm::class.java);
         explicitIntent.putExtra("player_id", playerId)
         explicitIntent.putExtra("team_id", currentId)
@@ -128,12 +175,11 @@ class PlayerList : AppCompatActivity() {
         ).show()
     }
 
-    private fun updaAdapter(){
-        players = SqlDataBase.tables?.retrieveByTeam(currentId)!!
-        Log.d("UPDATING ADAPTER PLAYER", players.toString())
+    private fun updaAdapter() {
         adaptador.clear()
-        players.forEach {
-            adaptador.insert(it, adaptador.count)
-        }
+        retrieveAll(adaptador, currentId)
     }
+
+
+
 }

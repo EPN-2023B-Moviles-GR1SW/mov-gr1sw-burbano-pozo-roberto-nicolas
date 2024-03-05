@@ -1,15 +1,14 @@
 package com.example.examen
 
-import java.util.*
-
 data class DPlayer(
-    var id: Int,
-    var debutDate: Date,
+    var id: String,
+    var debutDate: String,
     var isInjured: Boolean,
     var name: String,
-    var value: Float,
-    var team: Int
-){
+    var value: Long,
+    var team: String,
+
+    ){
     override fun toString(): String {
         return "$name";
     }

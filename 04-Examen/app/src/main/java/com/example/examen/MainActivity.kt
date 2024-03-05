@@ -14,12 +14,20 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
 import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QueryDocumentSnapshot
+import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var adaptador: ArrayAdapter<DTeam>
-    private lateinit var teams: ArrayList<DTeam>
+    val teams: ArrayList<DTeam> = arrayListOf()
     private var selectedItem = -1
+    var query: Query? = null
+    private lateinit var adaptador: ArrayAdapter<DTeam>
+
     override fun onCreateContextMenu(
         menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?
     ) {
@@ -35,6 +43,7 @@ class MainActivity : AppCompatActivity() {
     override fun onContextItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.edit_t -> {
+                Log.e("CONTEXT MENU", teams[selectedItem].id)
                 openForm(teams[selectedItem].id)
                 return true
             }
@@ -64,26 +73,69 @@ class MainActivity : AppCompatActivity() {
                 val data = result.data
                 showSnackBar("${data?.getStringExtra("action")}")
             }
-            updaAdapter()
-            adaptador.notifyDataSetChanged()
-
+            updateAdapter()
         }
     }
 
-    private fun updaAdapter() {
-        teams = SqlDataBase.tables!!.retrieveAllTeams()
+    private fun retrieveAllTeams(adapter: ArrayAdapter<DTeam>) {
+        val db = Firebase.firestore
+        val citiesRef = db.collection("teams")
+        citiesRef.get()
+                .addOnSuccessListener { documentSnapshots ->
+                    guardarQuery(documentSnapshots, citiesRef)
+                    for (team in documentSnapshots) {
+                        Log.e("Firebase function", team.toString())
+                        anadirAArregloTeam(team)
+                    }
+                    adapter.notifyDataSetChanged()
+                }
+                .addOnFailureListener {/* si hay fallos*/ }
+    }
+
+    fun anadirAArregloTeam(
+        document: QueryDocumentSnapshot
+    ) {
+        val newTeam = DTeam(
+            document.id,
+            document.data["name"] as String,
+            document.data["foundationDate"] as String,
+            document.data["netIncome"] as Long,
+            document.data["isActive"] as Boolean,
+        )
+        teams.add(newTeam)
+    }
+
+    fun guardarQuery(
+        documentSnapshots: QuerySnapshot,
+        refCities: Query
+    ) {
+        if (documentSnapshots.size() > 0) {
+            val ultimoDocumento = documentSnapshots
+                .documents[documentSnapshots.size() - 1]
+            query = refCities
+                .startAfter(ultimoDocumento)
+        }
+    }
+
+    private fun updateAdapter() {
         adaptador.clear()
+        retrieveAllTeams(this.adaptador)
         teams.forEach {
-            adaptador.insert(it, adaptador.count)
+           adaptador.insert(it, adaptador.count)
         }
     }
 
-    private fun deleteDialog(item: Int) {
+    private fun deleteDialog(item: String) {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Desea eliminar")
         builder.setPositiveButton("Aceptar") { _, _ ->
-            SqlDataBase.tables?.delete(item, "teams")
-            updaAdapter()
+            val db = Firebase.firestore
+            val referenciaEjemploEstudiante = db.collection("teams")
+            referenciaEjemploEstudiante
+                .document(item)
+                .delete()
+                .addOnCompleteListener {updateAdapter()}
+                .addOnFailureListener {}
             showSnackBar("Eliminar aceptado")
         }
         builder.setNegativeButton(
@@ -103,32 +155,31 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        Log.d("MAIN", "Starting DB")
-        SqlDataBase.tables = SQLHelperE(this)
-        Log.d("MAIN", "Created DB")
-
-
-        teams = SqlDataBase.tables!!.retrieveAllTeams()
         val listView = findViewById<ListView>(R.id.lv_player)
         this.adaptador = ArrayAdapter(
             this, android.R.layout.simple_list_item_1, teams
         )
         listView.adapter = adaptador
         adaptador.notifyDataSetChanged()
+        Log.e("Firebase",teams.toString())
+        retrieveAllTeams(adaptador)
+        Log.e("Firebase",teams.toString())
 
         val buttonAddListView = findViewById<Button>(
             R.id.create_p
         )
         buttonAddListView.setOnClickListener {
-            val newTeamId = SqlDataBase.tables!!.getMaxId("teams") + 1
-            openForm(newTeamId)
+            openForm("2")
         }
         registerForContextMenu(listView)
     }
 
-    private fun openForm(teamId: Int) {
+    private fun openForm(teamId: String?) {
         val explicitIntent = Intent(this, TeamForm::class.java)
-        explicitIntent.putExtra("team_id", teamId)
+        if (teamId != null) {
+            explicitIntent.putExtra("team_id", teamId)
+        }
         callBackIntent.launch(explicitIntent)
     }
 }
+

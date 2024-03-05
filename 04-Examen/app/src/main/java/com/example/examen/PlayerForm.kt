@@ -10,30 +10,33 @@ import android.widget.CheckBox
 import android.widget.DatePicker
 import android.widget.EditText
 import android.widget.TextView
+import com.google.android.gms.tasks.Task
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.ktx.firestore
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
 class PlayerForm : AppCompatActivity() {
-    private var playerId = -1
-    private var teamId = -1
+    private var player = DPlayer("", "", false, "", 0, "")
     val calendar = Calendar.getInstance()
+    private var teamId = ""
+    private var playerId = ""
     private lateinit var selectedDateTextView: TextView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player_form)
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        playerId = intent.getIntExtra("player_id", -1)
-        teamId = intent.getIntExtra("team_id", -1)
-        val player = SqlDataBase.tables?.retrievePlayer(playerId)
+        playerId = intent.getStringExtra("player_id").toString()
+        teamId = intent.getStringExtra("team_id").toString()
+        consultar(playerId)
         selectedDateTextView = findViewById(R.id.f_p_debut_date)
         selectedDateTextView.setOnClickListener {
             showDatePickerDialog()
         }
 
-        if (player != null) {
-            val selectedDate = dateFormat.format(player.debutDate)
-            selectedDateTextView.text = selectedDate
+        if (player.id != "") {
+            selectedDateTextView.text = player.debutDate
             findViewById<EditText>(R.id.f_p_name).setText(player.name)
             findViewById<EditText>(R.id.f_p_value).setText(player.value.toString())
             findViewById<CheckBox>(R.id.f_p_lesionado).isChecked = player.isInjured
@@ -47,33 +50,17 @@ class PlayerForm : AppCompatActivity() {
 
         val saveButton = findViewById<Button>(R.id.btn_save)
         saveButton.setOnClickListener {
+            crear()
             if (player != null) {
-                val selectedDate = dateFormat.format(player.debutDate)
-                SqlDataBase.tables?.updatePlayer(
-                    selectedDate,
-                    this.findViewById<CheckBox>(R.id.f_p_lesionado).isChecked,
-                    this.findViewById<TextView>(R.id.f_p_name).text.toString(),
-                    this.findViewById<TextView>(R.id.f_p_value).text.toString().toFloat(),
-                    teamId,
-                    playerId,
-                )
                 exit("Jugardor Actualizado")
             } else {
-                Log.d("CREATING PLAYER", "Start")
-                SqlDataBase.tables?.createPlayer(
-                    this.findViewById<TextView>(R.id.f_p_debut_date).text.toString(),
-                    this.findViewById<CheckBox>(R.id.f_p_lesionado).isChecked,
-                    this.findViewById<TextView>(R.id.f_p_name).text.toString(),
-                    this.findViewById<TextView>(R.id.f_p_value).text.toString().toFloat(),
-                    teamId,
-                )
-                println(SqlDataBase.tables?.retrieveByTeam(teamId))
                 exit("Jugador Creado", playerId)
             }
+            consultar(teamId)
         }
     }
 
-    private fun exit(message: String, newPlayer: Int) {
+    private fun exit(message: String, newPlayer: String) {
         val returnIntent = Intent()
         returnIntent.putExtra("action", message)
         returnIntent.putExtra("newPlayerId", newPlayer)
@@ -114,6 +101,56 @@ class PlayerForm : AppCompatActivity() {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val selectedDate = dateFormat.format(calendar.time)
         selectedDateTextView.text = selectedDate
+    }
+
+
+    fun consultar(id: String): Task<DocumentSnapshot> {
+        val db = com.google.firebase.Firebase.firestore
+        val citiesRefUnico = db.collection("players")
+        return citiesRefUnico.document(id).get().addOnSuccessListener { it ->
+            if (it.data != null) {
+                player = DPlayer(
+                    it.id,
+                    it.data!!["debutDate"] as String,
+                    it.data!!["isInjured"] as Boolean,
+                    it.data?.get("name") as String,
+                    it.data!!["value"] as Long,
+                    it.data!!["team"] as String,
+                )
+                var id = it.id
+                findViewById<EditText>(R.id.f_p_name).setText(player.name)
+                findViewById<EditText>(R.id.f_p_debut_date).setText(player.debutDate)
+                findViewById<EditText>(R.id.f_p_value).setText(player.value.toString())
+                findViewById<CheckBox>(R.id.f_p_lesionado).isChecked = player.isInjured
+            }
+
+        }.addOnFailureListener {
+
+        }
+    }
+
+    fun crear() {
+        val db = com.google.firebase.ktx.Firebase.firestore
+        val coll = db.collection("players")
+        val teamData = hashMapOf(
+            "name" to this.findViewById<TextView>(R.id.f_p_name).text.toString(),
+            "debutDate" to this.findViewById<TextView>(R.id.f_p_debut_date).text.toString(),
+            "value" to this.findViewById<TextView>(R.id.f_p_value).text.toString().toLong(),
+            "isInjured" to this.findViewById<CheckBox>(R.id.f_p_lesionado).isChecked,
+            "team" to teamId,
+        )
+        if (player.id != "") {
+            coll
+                .document(player.id)
+                .set(teamData)
+                .addOnSuccessListener { }
+                .addOnFailureListener { }
+        } else {
+            coll
+                .add(teamData)
+                .addOnCompleteListener { }
+                .addOnFailureListener { }
+        }
     }
 }
 
